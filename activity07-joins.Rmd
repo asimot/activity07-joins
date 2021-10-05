@@ -13,6 +13,11 @@ knitr::opts_chunk$set(error = TRUE)
 Load the entirety of the `{tidyverse}`.
 Be sure to avoid printing out any unnecessary information and give the code chunk a meaningful name.
 
+```{r package_load, include = FALSE, message = FALSE}
+
+library(tidyverse)
+
+```
 
 
 In this activity we will explore joining information that is contained in multiple data files.
@@ -31,8 +36,14 @@ Read each of the three files using `here::here` in combination with the appropri
 Assign each file to a meaningful object name (e.g., `dennys`,`laquinta`, and `states`), be sure to avoid printing any unnecessary information.
 Give your code chunk a meaningful name.
 
+```{r csv_reads, message = FALSE, include=FALSE}
+
+dennys <- read_csv(here::here("data", "dennys.csv"))
+laquinta <- read_csv(here::here("data", "laquinta.csv"))
+states <- read_csv(here::here("data", "laquinta.csv"))
 
 
+```
 
 ### Provide more information
 
