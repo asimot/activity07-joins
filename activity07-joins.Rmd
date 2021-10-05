@@ -316,7 +316,7 @@ laquinta_us %>%
 
 
 **Response**:
-Rhose Island has the most LaQuinta locations per thousand square miles, followed by Florida.
+Rhode Island has the most LaQuinta locations per thousand square miles, followed by Florida.
 
 ![](README-img/noun_pause.png) **Planned Pause Point**: If you have any questions, contact your instructor. Otherwise feel free to continue on.
 
@@ -330,7 +330,7 @@ Why would it not be wise to use a mutating join (e.g., `inner_join`, `left/right
 That is, both of the datasets have the same variable names, would it not make sense to join them at the same address?
 
 **Response**:
-
+This isn't the best way to approach the problem as this would be combining the existing data from table2 into table1 and we will not retain all rows in both sets.
 
 If we were able to use a mutating join, what would this output would look like?
 Why would this not be helpful?
