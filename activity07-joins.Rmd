@@ -40,7 +40,7 @@ Give your code chunk a meaningful name.
 
 dennys <- read_csv(here::here("data", "dennys.csv"))
 laquinta <- read_csv(here::here("data", "laquinta.csv"))
-states <- read_csv(here::here("data", "laquinta.csv"))
+states <- read_csv(here::here("data", "states.csv"))
 
 
 ```
@@ -67,33 +67,33 @@ str(states)
 
 #### Denny's data
 
-| Variable    | Type | Brief description                 |
-|-------------|------|-----------------------------------|
-| `address`   |      | street address of dennys location |
-| `city`      |      | city of dennys location           |
-| `state`     |      | state of dennys location          |
-| `zip`       |      | zip code of dennys location       |
-| `longitude` |      | east-west position on Earth       |
-| `latitude`  |      | north-south position on Earth     |
+| Variable    | Type     | Brief description                 |
+|-------------|----------|-----------------------------------|
+| `address`   |char      | street address of dennys location |
+| `city`      |char      | city of dennys location           |
+| `state`     |char      | state of dennys location          |
+| `zip`       |char      | zip code of dennys location       |
+| `longitude` |double    | east-west position on Earth       |
+| `latitude`  |double    | north-south position on Earth     |
 
 #### La Quinta's data
 
-| Variable    | Type | Brief description                   |
-|-------------|------|-------------------------------------|
-| `address`   |      | street address of laquinta location |
-| `city`      |      | city of laquinta location           |
-| `state`     |      | state of laquinta location          |
-| `zip`       |      | zip code of laquinta location       |
-| `longitude` |      | east-west position on Earth         |
-| `latitude`  |      | north-south position on Earth       |
+| Variable    | Type     | Brief description                   |
+|-------------|----------|-------------------------------------|
+| `address`   |char      | street address of laquinta location |
+| `city`      |char      | city of laquinta location           |
+| `state`     |char      | state of laquinta location          |
+| `zip`       |char      | zip code of laquinta location       |
+| `longitude` |double    | east-west position on Earth         |
+| `latitude`  |double    | north-south position on Earth       |
 
 #### States data
 
-| Variable       | Type | Brief description             |
-|----------------|------|-------------------------------|
-| `name`         |      | state name                    |
-| `abbreviation` |      | state abbreviation            |
-| `area`         |      | area in thousand square miles |
+| Variable       | Type     | Brief description             |
+|----------------|----------|-------------------------------|
+| `name`         |char      | state name                    |
+| `abbreviation` |char      | state abbreviation            |
+| `area`         |double    | area in thousand square miles |
 
 ![](README-img/noun_pause.png) **Planned Pause Point**: If you have any questions, contact your instructor. Otherwise feel free to continue on.
 
@@ -108,12 +108,16 @@ What about Denny’s?
 
 **Response**:
 
+Denny's only has locations in the US, but La Quinta has locations outside the US, for example New Zealand and Mexico
+
 
 If we wanted to do this using the datasets, would we need to ?
 Don’t worry about implementing this yet, you only need to brainstorm some ideas.
 Include at least one idea as your answer, but you are welcome to write down a few options too.
 
 **Response**:
+We can filter datasets by rows where states are valid US state abbreviations
+We could also do an inner_join based with either dennys or laquinta and a set containing all state abbreviations in the US
 
 
 ### Preparing to Join
@@ -125,16 +129,32 @@ To do so, *filter* the Denny’s locations for observations where state is *not 
 Do not assign this to anything; we only want to see if we need to be aware of non-US cases.
 If there are any non-US locations, specify where these are.
 
+```{r filter_dennys_outsideUS}
+
+dennys %>%
+  filter(!(state %in% states$abbreviation))
+
+
+
+```
 
 
 
 **Response**:
+Dennys only has US locations
 
 
 Now do this again, but using `anti_join`.
 To do so, take the Denny's locations and anti-join this with the states dataset.
 Remember to specify your `by` columns.
 
+```{r antijoin_dennys}
+
+dennys %>%
+  anti_join(states, by = c("state" = "abbreviation"))
+
+
+```
 
 
 #### Brief Aside
@@ -178,8 +198,15 @@ dennys %>%
 
 Determine if La Quinta has any locations that are outside of the US.
 
+```{r laquinta_outUS}
+
+laquinta %>%
+  anti_join(states, by = c("state" = "abbreviation"))
 
 
+```
+
+There are 14 locations outside of the US for La Quinta.
 
 #### Isolating US locations
 
@@ -187,6 +214,13 @@ For the rest of this activity, we will work with the data from the United States
 All Denny's locations in our file are in the US so we do not need to worry about updating this object, but you do need to do some work on the `laquinta` data.
 Create a new object called `laquinta_us` that only contains the locations inside the US.
 
+```{r keep_US_only}
+
+laquinta_us <- laquinta %>%
+    semi_join(states, by = c("state" = "abbreviation"))
+
+
+```
 
 
 ### Fewest locations
@@ -196,23 +230,41 @@ Let's test some of our data summary skills.
 Which US state(s) has/ve the fewest Denny's location?
 
 
+```{r summaries_Dennys}
+
+dennys %>%
+  group_by(state) %>%
+  summarise(instate = n()) %>%
+  arrange(instate)
+
+
+```
 
 
 **Response**:
-
+Delaware (DE) has the fewest locations out of US states + DC
 
 Which US state(s) has/ve the fewest La Quinta locations?
 
+```{r summaries_laquinta_us}
 
+laquinta_us %>%
+  group_by(state) %>%
+  summarise(instate = n()) %>%
+  arrange(instate)
+
+
+
+```
 
 
 **Response**:
-
+Maine has the fewest Laquinta locations within the US
 
 Is this surprising to you? Why or why not?
 
 **Response**:
-
+Not really, Maine being the furthest from Mexico and LLatin America, I would expect they would have few locations.
 
 ### Locations per thousand square miles
 
@@ -228,23 +280,43 @@ To do this, we will need to join each company's tibble with the information in t
   Therefore, we will need to specify that the `state` variable from the `dennys` tibble should be matched `by` the `abbreviation` variable from the `states` tibble.
 3. *Then*, calculate the number of Denny's locations *per* thousand square miles.
 
+```{r}
+
+dennys %>%
+  group_by(state) %>%
+  summarise(n = n()) %>%
+  inner_join(states, by = c("state" = "abbreviation")) %>%
+  mutate(perThousandMiles = n / area) %>%
+  arrange(desc(perThousandMiles))
+
+
+```
 
 
 
 Which states have the most Denny's locations per thousand square miles?
 
 **Response**:
-
+DC has the most Dennys locations per thousand miles.  The second highest density is in Rhode Island.
 
 #### La Quinta
 
 Similarly as we previously did for Denny's, calculate the number of La Quinta locations *per* thousand square miles.
 
+```{r laquinta_perthousand}
 
+laquinta_us %>%
+  group_by(state) %>%
+  summarise(n = n()) %>%
+  inner_join(states, by = c("state" = "abbreviation")) %>%
+  mutate(perThousand = n / area) %>%
+  arrange(desc(perThousand))
+
+```
 
 
 **Response**:
-
+Rhose Island has the most LaQuinta locations per thousand square miles, followed by Florida.
 
 ![](README-img/noun_pause.png) **Planned Pause Point**: If you have any questions, contact your instructor. Otherwise feel free to continue on.
 
